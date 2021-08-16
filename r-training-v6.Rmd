@@ -1,0 +1,654 @@
+---
+title: "R Markdown Training"
+author: "Simon Wellesley-Miller"
+date: "09/07/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, message=FALSE, warning=FALSE,include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo = FALSE)
+## change the echo to TRUE to show the R code in the document
+## having it showing is really useful when building a report as it helps working out what bit is doing what
+## you can really get in to a rabit hole of the R  / Markdown code looking nothing like the output
+##usually ggod practice to load all your librarys at the start
+library(NHSRdatasets)
+library(tidyverse)
+library(kableExtra)
+library(reactable)
+library(esquisse)
+library(rpivotTable)
+library(leaflet)
+library(DT)
+library(sparkline)
+library(plotly)
+library(lubridate)
+library(treemap)
+library(collapsibleTree)
+library(tidygeocoder)
+library(leaflet)
+library(widgetframe)
+library("tm")
+library("SnowballC")
+library("wordcloud2")
+library("RColorBrewer")
+library(dygraphs)
+library(xts)   
+## pull some data from the NHS R dataset
+data <- ae_attendances
+data4 <- data %>% filter (org_code =="RXQ")
+##Just setting up a couple of plots to use later in the example
+##this will be explained a little later
+##so nothing to see here, move along 
+p1 <-ggplot( filter(data,org_code =="RXQ"), aes(x = period, y = attendances, group = type, colour = type)) +
+ geom_line(size = 1.32) +
+ labs(title = "RXQ Number of attendances by type") +
+ theme_minimal()
+p2 <-ggplot( filter(data,org_code =="RJ1"), aes(x = period, y = attendances, group = type, colour = type)) +
+ geom_line(size = 1.32) +
+ labs(title = "RJ1 Number of attendances by type") +
+ theme_minimal()
+p3 <-ggplot( filter(data,org_code =="RYJ"), aes(x = period, y = attendances, group = type, colour = type)) +
+ geom_line(size = 1.32) +
+ labs(title = "RH1 Number of attendances by type") +
+ theme_minimal()
+## I find it is usually good practice to write all your R code at the start and create all your charts and tables and stuff at start and make them objects.  You can then insert them into the markdown document.  
+## This splits the two things and makes it easier to read the markdown and all the code is together.
+## However for this example I am breaking this rule and writting most of the code before a chunk of markdown so that you can directly see which each bit is doing.
+## This is quite a cobbled togther piece of code from many projects, so I have not been very consistent with my naming conventions and I am reusing and duplicating a far bit of data which is by no means the most efficient way of doing things and has over inflated the final file size of the output.  Oh well.
+```
+
+# Introduction
+
+This is going to be a bit of a of an attempt to talk you through and train you at the same time on how to create a markdown report.
+
+You run a markdown by 'knit' ing it.  There is literally an icon with a ball of wool with a knitting needle in it.  That is the button we need and it knits together all the markdown stuff and r code into one super snazzy output.
+
+Will get you to knit the report and see the results and then we will pick apart the code and see how it is done behind the scenes.
+
+If you have 2 screens try to have the code on one side and the report on the other and you can look side by side at what is happening.
+
+I will also be presenting and you can look at me to follow as well.
+
+> How many times have you wanted to create a report that has the beauty and readability of a word document but want to add interactive graphs and functionality of a excel filtered table or even a pivot table?  
+If only there was a way you could pull your data, wrangle it and then finally get it to produce a beautiful report, all in one process.
+
+If only...
+
+If only...
+
+Hang on!  Sounds really complicated and difficult and need lots of tricky code.  Have we not been telling you how brilliant R is?  
+
+![](https://media.giphy.com/media/b4zlJtrRM15q8/giphy.gif)
+
+
+
+Introducing
+
+
+![MarkdownIcon](https://bookdown.org/yihui/rmarkdown/images/hex-rmarkdown.png)
+
+You can import images, either from the web or from a local directory - this one is from the web and it is massive! You can see above you can also insert animated gifs.  
+(I fear what I have done to the NHS by releasing that knowledge into the wild - I take no responsibility for any repercussions of animated nyan cat reports.)
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+Word and PDF reports are fine and you can do some very pretty but flat reports in these outputs.  Thats fine but the cool kats and kitties want interactive and flashy. 
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
+
+You may notice the nice floating contents page to the left.  This is created in the YAML header at the very start of the document.  YAML stands for YAML Ain't Markup Language.  It sets some global parameters and can do some cool stuff.  You set the headings as per the next section and the document automatically picks up those with a single '#'.
+
+*So what can you do?*
+
+# Markdown formatting
+
+## You can play with headers that get smaller
+
+### You can play with headers - and smaller
+
+#### You can play with headers  - and smaller
+
+##### You can play with headers  - and smallest
+
+You can make a line make a line break
+
+***
+
+You can do all the normal *italics* and **bold** and ^superscript^ and ~~strike-though~~
+
+> Things like block quotes look funky  
+> especially if you put a few together  
+> make sure you end your sentences with 2  
+> spaces to start a new paragraph  
+
+Other things that are easy
+
+* lists
+* putting stuff in lists
+  + putting stuff in sub lists
+  + such as this
+* did I say lists?
+
+You can also do numbered lists
+
+(@) Like this
+(@) Fine example of a list
+    + and do sub lists in a numbered list
+      i) and do sub sub lists  
+        A. and sub sub sub list
+
+Write some stuff in the middle of your list        
+        
+(@) and then go back to the list
+(@) NOTE: the numbers in the list are not specified, they are dynamic and if you go and edit one out it will adjust them automatically
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+You can colour in a block to assist with highlighting an area.
+
+- This is my first conclusion
+- This is my second conclusion  
+
+</div>
+
+You can add footnotes[^1]
+
+[^1]:This is the footnote from the footnote added way way up above
+
+You can also do basic dynamic tables just in markdown - looks messy in the code, pretty in the markdown and thanks to the power of HTML, they re-size according to the screen, all of these tables and charts are mobile friendly.
+
+Column heading one | Second column heading
+---|---
+Stuff | Column 2 stuff
+Another row of stuff | More column 2 stuff  
+
+You can align the stuff in these tables but they don't work well with numbers
+
+| Right | Left  | Default | Centre |
+|---:|:---|----|:----:|
+| blurb right aligned | blurb left aligned | blurb default | blurb in da centre |
+| 1234 | 56788 | 4545644 | 43535 |
+|  34.2 | 3442.1 | 3421.1 | 4512.45 |
+
+
+<p style="font-family: comic sans MS; font-size:20pt">
+    You can also play with HTML tags to change font to comic sans
+</p>
+
+<p style="font-family: Impact, Charcoal, sans-serif; font-size:10pt; font-style:italic">
+    Just because you can does not mean you should!
+</p>
+
+
+# Tabsets
+
+Tabsets are great for creating nice interactive documents and reducing the length of your document but still cramming in loads of extra data without your reader realising it.
+
+If you look at the code you can see that you can add a little fade to give your report a little extra sparkle or you can leave it for extra zip. I am using a bit of fade sparkle for this example
+
+## Results by provider {.tabset .tabset-fade .tabset-pills}
+
+
+
+### Provider code RXQ
+
+```{r p1}
+p1
+```
+
+Blah blah blah super important commentary about the blue line going up.
+
+### Provider code RJ1
+```{r p2}
+p2
+```
+
+Oh my - the red line is going up, no one wants to see a red line going up.  Must remember to RAG rate this later and add a sad smiley face, pretty sure there will be a lesson on how to do that later.
+
+### Provider code RYJ
+```{r p3}
+p3
+```
+
+-insert witty commentary here-
+
+## {.unlisted .unnumbered}
+
+That is the basic text formatting stuff, but we want to do clever things and incorporate our data
+
+# Adding some data
+
+We are going to use the NHR-R sample data set and use the AE attendances data.  This has a date, a organisation code, a type,  number for attendances, admissions and breaches. 
+
+You can include data within the markdown specifically within the text by doing a back tick r and entering a variable or formula (you can also format it into a nice readable number).
+
+For example the total number of attendances from the data set is `r format(sum(data$breaches),format="f", big.mark=",")`
+
+The date of `r as.character(today(),format="%d %B %Y")` is when you pressed the knit button report.
+
+You can also add *'code chunks'*, these are chunks of code that sit within your markdown document. 
+
+So here is a the base way to include some data you simple do triple back ticks to tell R studio that now you want to do some R stuff.
+
+This will print the summary of the AE attendnace* data set in a not very pretty table
+
+> \* just noticed a typo in 'attendance' - R studio does have a spell check feature - remember to use it as not automatic, no wavy red lines like word!\**  
+> \** you also have to do backslash asterisk when you actually want to use an asterisk
+```{r attend}
+# The bit the the curly brackets after the R is simply the name of the code chunk
+# helps to find your way around when you have lots of bits of code
+# as you can see '#'s have gone back to being comments in the R code and not headings
+# you can use this chunk header to set several perameters suchs as whether to display 
+# this code and set size of any charts you call up and stuff like that.
+## just create a little subset so it will fit in a simple table
+data2 <- data %>% filter(org_code=="RF4", type == "other", attendances >= 5000)
+# You can print the data frame simply by printing it (print command not required)
+data2
+# end the R code chunk with another 3 backticks
+```
+
+# Library - Kable
+
+Basic but by no means pretty, we can use the kable package to make a prettier table, in just 2 lines of code you can produce this, which has better readability and a nice reading hover over. 
+
+```{r kableattend}
+kable(data2) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+The kable package to make a prettier table, indent rows and colour it in and change formats, add sub headings and is quite simple to use.
+
+```{r kableattendfunky}
+kable(data2) %>%
+   kable_styling("striped") %>%
+  pack_rows("sub heading and indent first 3 rows", 1, 3) %>%
+  row_spec(4, bold = T, background = "yellow") %>%
+  row_spec(7, bold = T, color = "white", background = "#D7261E")
+```
+
+Kable is really good for a static and pretty, but we want interactive.
+
+# Library - DT (short for data table)
+
+This is a DT datatable - has lovely filters on the periods and different columns.  You can re order the data and show as much or as little as you like.   The export buttons export what you have selected.  There is also a search function for the data.
+
+You can mess around with the defaults so that it shows a larger table.
+
+
+```{r datatable}
+datatable(data, filter = 'top', 
+          extensions = 'Buttons',
+          options = list(dom = 'Blfrtip',
+          buttons = c('copy', 'csv', 'pdf', 'print'),
+          lengthMenu = list(c(10,25,50,-1),
+          c(10,25,50,"All"))))
+```
+
+DT Datatable is pretty good and quick, even the base default comes up with a pretty good table.  It is very nice at presenting a flat table, but if you want calculations and totals , you have to hard code them into your table.
+
+That is one format or if you want more summary type reports you can use reactable.
+
+# Library - Reactable
+
+This is reactable, and it works a little more like a filtered and sub grouped table.  It is a bit trickier to use, but seems to be able to all the stuff of data table and a bit more.
+
+```{r reactable}
+reactable(data, groupBy = "org_code",  minRows = 10)
+```
+
+
+Reactable is really good at creating summaries and drill down datasets.  It creates all the groupings of data itself and so you do not have to wrangle the data into groups before you make the table.  You can also create high level aggregate functions on a group and have the ability to drill down to see the underlying data.
+
+```{r reactablesummary}
+##data2 <- data %>% filter (type == 2)
+reactable(data, groupBy = c("period", "type"),  
+          minRows = 10,
+          columns = list (
+                          attendances =colDef(aggregate = "median", name = "Median attendances", align = "left"), 
+                          breaches = colDef(aggregate =  "max", name = "Max breaches", align = "left")  ,
+                          admissions = colDef(aggregate = "mean", format = colFormat(digits = 1), name = "Mean admissions", align = "left") ))
+```
+
+Reactable has many more functions than a DT datatable but as I said, is a little more tricky to use.  
+
+You can use it to do funky stuff like this, I see your spark lines excel and raise you spark box plots!  (and conditional formatting)
+
+```{r sparkytable}
+data3 <- data %>% filter (org_code == 'RJ2', type == "1" )
+reactable (data3,
+  defaultPageSize = 15,
+  bordered = TRUE,
+  columns = list (breaches = colDef(style = function(value) {
+    if (value < 3000) {color <- "#008000"
+    } else if (value > 3001) {color <- "#e00000"
+    } else {color <- "#777"}
+    list(color = color, fontWeight = "bold")
+  })
+  ),
+  defaultColDef = colDef(footer = function(values) {
+    if (!is.numeric(values)) return()
+    sparkline(values, type = "box", width = 100, height = 30)
+  })
+)
+```
+
+(Want to be super impressed?  Hover over the spark box)
+
+***
+### Lets get plotting...
+***
+
+Of course we can add a plot, you can change the size, alignment and all of that stuff.  You can wrap your text around a plot and potentially have plots side by size.
+
+You need to switch to the code here for a little funky plotting short cut.
+
+# Library - esquisse
+
+```{r plottymcplotface}
+## so we want to include a plot - but what plot shall we make?
+## hopefully we have a bit of knowledge of ggplot but sometimes a little tricky to play with 
+##or you may want to quickly have a look at a number of plots to see which one is best for you.
+##introducing the esquisse package (french word that means 'a rough or preliminary sketch') 
+## lets just make a quick cut down dataset
+data4 <- data %>% filter (org_code =="RXQ")
+## click in the code where you would like to add some plot code
+##  esquisser(data)   ##run this in the console
+##  drag period to x
+##  drag attendances to y
+##  drag type to group
+##  can also play  with formats and themes and filter the data to a small amount
+##  can then place code into your script
+## ta da!
+ggplot(data4, aes(x = period, y = attendances, group = type, colour = type)) +
+ geom_line(size = 1.32) +
+ labs(title = "RXQ Number of attendances by type") +
+ theme_minimal()
+```
+
+So that's a plot, does what it says on the tin, but what is better than a static plot?
+
+Interactive plots...
+
+```
+# Library - plotly
+```{r interactiveplottymcplotface}
+##take our normal graph we just made and make it an object
+p1 <- ggplot(data4, aes(x = period, y = attendances, group = type, colour = type)) +
+ geom_line(size = 1.32) +
+ labs(title = "RXQ Number of attendances by type") +
+ theme_minimal()
+## then simply (gg)plotly it..
+ggplotly(p1)
+```
+
+
+* You can click on the legend to add or remove line
+* You can click and drag an area to zoom in on
+* You can hover over line to see data points
+* You can export as an image
+
+All is far more customisable within the plotly function, you can have multiple select-able data sets and all manner of other stuff.
+
+## Animated graphs
+
+Pretty cool but lets show off and animate
+
+
+```{r animatedplottymcplotface}
+data5 <- data4
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+data5$year <- year(data5$period)
+data5$date <- decimal_date(data5$period)
+fig <- data5 %>% accumulate_by(~period)
+fig <- fig %>%
+  plot_ly(
+    x = ~date, 
+    y = ~attendances,
+    split = ~type,
+    frame = ~frame, 
+    #type = 'scatter',
+    mode = 'lines' 
+   # mode = 'lines+markers',
+   # type = 'scatter', 
+  #  mode = 'none', 
+  #  fill = 'tozeroy',
+  #  line = list(simplyfy = T)
+  )
+fig <- fig %>% layout(
+  xaxis = list(
+    title = "Date",
+    zeroline = F
+  ),
+  yaxis = list(
+    title = "Admissions",
+    zeroline = T
+  )
+) 
+fig <- fig %>% animation_opts(
+  frame = 100, 
+  transition = 0, 
+  redraw = TRUE
+)
+fig <- fig %>% animation_slider(
+  hide = F
+)
+fig <- fig %>% animation_button(
+  x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+)
+fig
+```
+
+Obviously pretty pointless in this example, but may be good as a way to be more visual to get a point across.  
+
+If it gets people actually looking at the data and wanting their little wiggly lines going up that has to be good for patient care.
+
+# Library - dygraphs
+
+So how about we take the admissions data for the providers above and create a nice time series graph.  This DY graph is nice for playing with time series as it allows you to zoom in on certain areas.
+
+There is also a nice little box on the bottom left of the graph.  This allows you to smooth your data with a rolling average on the fly.  Really useful for things such as length of stay or things with lots of variablity and trying to pull out an overall trend.
+
+
+```{r interactivetimeseriesplottymcplotface}
+data14 <- data4 %>% filter(type=='1') %>% select('period', 'attendances') 
+# Then you can create the xts necessary to use dygraph
+don <- xts(x = data14$attendances, order.by = data14$period)
+# Finally the plot
+p <- dygraph(don, main = "Admissions over time") %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A",) %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE) %>%
+  dyRoller(rollPeriod = 0) %>%
+  dyAxis("y", label = "Number of admissions")
+p
+```
+
+Other good functions for visualising data sets.
+
+# Library - Treemap
+
+One is treemap, it is like a posh pie chart for looking at proportions of a variable.
+
+Obviously R **can** do pie charts, but I whereas I am willing to show you how add animated gifs into your reports, even I would not sink that low. 
+
+```{r treemap}
+data8 <- data %>% filter (type == '2', period == '2018-04-01')
+treemap(data8, index=c("org_code", "type"),vSize="attendances")
+```
+
+This is a nice overview of a large amount of data, gets a bit messy when you have a lot of factors
+
+# Library - collapsibleTree
+
+Another really cool thing to play with is a dendrogram which you can make with collapsibleTree. 
+
+This is really good at showing flow through pathways and systems.  You can make them horizontal or vertical and play with all manner of bits on the nodes.
+
+Click on the nodes and you can also zoom in and out and scroll around.
+
+I also find it really relaxing for some reason.
+
+
+```{r collapseabletree}
+data6 <- data %>% filter (org_code %in% c("RK9", "RWJ", "AD913"))
+collapsibleTree( data6, c("org_code", "type","period", "attendances"), nodeSize = 'leafCount', root = 'Base data', tooltip = TRUE)
+```
+
+# Library - Leaflet
+
+Leaflet is a great mapping library and works with open street map so you don't have to worry about google API tokens and the like.  There are some fantastic things you can do with the google service which allows you to access travel times and route finding, however for simple mapping leaflet is great.  You can do heatmaps and areas, draw lines across points and also add layers that you can select on and off.  
+
+This example has 3 teams that are set up as layers and youcan turn each one on and off.  
+
+The maps can be scrolled and zoomed, what is nice is the icons remain to scale.
+
+
+```{r mappymcmapface}
+## creates a basic dataframe with some teams and postcodes
+label <- c('Team A', 'Team A', 'Team B', 'Team B', 'Team C')
+postcode <- c('EX16 7FL', 'EX39 5EN', 'PL13 2WP', 'PL15 8RZ', 'PL30 4PX')
+df <- data.frame(label,postcode)
+## This is the magic bit that uses the tidygeocoder package to find longatudes and latitudes
+df <- df %>% mutate( geo(address = df$postcode, method = 'osm'))
+## Filters cohort into three lists, one for each iconset
+cohort_filter1 <- df %>%
+  filter(df$label == "Team A")
+cohort_filter2 <- df %>%
+  filter(df$label == "Team B")
+cohort_filter3 <- df %>%
+  filter(df$label == "Team C")
+##  Create awesome icon sets for colours
+iconSet <- awesomeIconList(
+  "Team A"  = makeAwesomeIcon( icon = 'male', lib = 'fa', iconColor = "black", markerColor = "red"   , spin = FALSE ) ,
+  "Team B"             = makeAwesomeIcon( icon = 'male', lib = 'fa', iconColor = "black", markerColor = "orange", spin = FALSE ) ,
+  "Team C"       = makeAwesomeIcon( icon = 'male', lib = 'fa', iconColor = "black", markerColor = "beige" , spin = FALSE ) )
+## Creates layors for map, each for the three iconset 'Teams'
+map <- leaflet(df) %>%  
+  addTiles() %>%
+  addProviderTiles(providers$OpenStreetMap) %>% 
+  addAwesomeMarkers( lng = cohort_filter1$long,
+                     lat = cohort_filter1$lat,
+                     group = "Team A",
+                     icon = iconSet[cohort_filter1$label],
+                     label = paste(sep = " - ",
+                                   cohort_filter1$label ) ) %>%
+  addAwesomeMarkers( lng = cohort_filter2$long,
+                     lat = cohort_filter2$lat,
+                     group = "Team B",
+                     icon = iconSet[cohort_filter2$label],
+                     label = paste(sep = " - ",
+                                   cohort_filter2$label ) ) %>%
+  addAwesomeMarkers( lng = cohort_filter3$long,
+                     lat = cohort_filter3$lat,
+                     group = "Team C",
+                     icon = iconSet[cohort_filter3$label],
+                     label = paste(sep = " - ",
+                                   cohort_filter3$label ) ) %>% 
+  addLayersControl(overlayGroups = c("Team A", "Team B", "Team C"),    ##this bit adds the controls
+    options = layersControlOptions(collapsed = FALSE) ) 
+map
+```
+
+# Library - Wordcloud2
+
+Wordcloud2 is the sequel to wordcloud, much like Evil Dead 2 to the original, it is a far superior product, it has some really nice easy to use features and can make all manner of different wordclouds types.  
+
+However before you get to a word cloud you need some data which is basically a list of words and their frequency.  You can do this manually on your fingers or you can get R to do this for you.  I definately recommend the latter.
+
+To get to that you read in some data, strip out all the gubbins such as punctuation, remove all the 'stop words' such as 'the' and 'and' etc and then remove white space and there you have a bunch of words fit for a cloud.
+
+This is an example that pulls the text from a popular childrens novel and creates a cloud.  Hopefully you can guess the book from the cloud.
+
+You can hover over the words in the cloud and it will tell you the word and give you the number of the frequency.
+
+
+```{r cloudywithachanceofwords}
+## reads in text file from the interwebz
+filePath <- "https://www.gutenberg.org/files/11/11-0.txt"
+text <- readLines(filePath)
+##converts the file into a corpus (vector file for text mining)
+docs <- Corpus(VectorSource(text))
+## removes spaces as and odd characters
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
+docs <- tm_map(docs, toSpace, "/")
+docs <- tm_map(docs, toSpace, "@")
+docs <- tm_map(docs, toSpace, "\\|")
+docs <- tm_map(docs, toSpace, "'")
+docs <- tm_map(docs, toSpace, "`")
+# Remove punctuations
+docs <- tm_map(docs, removePunctuation)
+# Convert the text to lower case
+docs <- tm_map(docs, content_transformer(tolower))
+# Remove numbers
+docs <- tm_map(docs, removeNumbers)
+# Remove english common stopwords
+docs <- tm_map(docs, removeWords, stopwords("english"))
+# specify your stopwords as a character vector - in this instance it was picking up some of the copyright notice
+docs <- tm_map(docs, removeWords, c("project", "license", "copyright","gutenberg","electronic","agreement","gutenbergtm")) 
+# Eliminate extra white spaces
+docs <- tm_map(docs, stripWhitespace)
+#it was still bringing back some quotation marks and so this finally removes what is left
+removeSpecialChars <- function(x) gsub("[^a-zA-Z0-9 ]","",x)
+docs <- tm_map(docs, content_transformer(removeSpecialChars))
+# this bit sorts and ranks the word frequencies and plonks into the dataframe 'd'
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+# this is the line that creates the word cloud
+wordcloud2(d, color = "random-light", backgroundColor = "white")
+```
+
+# Library - Rpivottable
+
+Saving perhaps my favorite until last, is the super awesome Rpivottable.
+
+This has full click and drag functionality as well the option to set up defaults in the report and also you can click through, create charts and heat maps, filter your data, calculate a pivot table with a median and just do all sorts of magic.
+
+You can click and drag the variables around.  You can click on the arrows to the side of the variables to filter them.  You can click on the count to select a different metric and finally you can click on the table to change the results to a graph or heatmap or loads of things. 
+
+It doesn't like super huge data sets if you are running it locally but if you get clever with shiny, you can do big things.
+
+It also has a habbit of overlapping with stuff below it.  I am working on a HTNL solution to this and I think this is a 'feature' that is being worked on by the developers.  I usually just add it at the end of a report or on a seperate tab to get around this issue.
+
+This whole functionality is done with one line of code.  (!!!)
+
+```{r pivottable}
+rpivotTable(data6,rows=c("org_code"), cols=c("type"), vals=c("admissions"),width="100%", height="1200px")
+```
+
+
+# Thats all folks
+
+Please feel free to hack and ~~steal~~ share best practice from this report.  
+
+Some really nice visualisation tips can be found at
+
+https://www.data-to-viz.com/caveats.html
+
+and some more markdown tips at
+
+https://holtzy.github.io/Pimp-my-rmd/
+
+Other that I wish you well on your R journey and please do not hesiatte to contact me if you have found any interesting things to share 
+
+Merry markdowning
+
+> Contact
+Simon.Wellesley-Miller@nhs.net 
