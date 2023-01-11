@@ -8,9 +8,8 @@
 
 ## Attending the course?
 
-If you are attending the course all the course materials and preparation
-instructions can be viewed
-[here](https://philosopher-analyst.netlify.app/collection/nhsr-intro/prework/).
+If you are attending the course check all the [course materials and preparation
+instructions](https://philosopher-analyst.netlify.app/collection/nhsr-intro/).
 
 The GitHub source files are in a separate [GitHub
 repository](https://github.com/nhs-r-community/intro_r).
